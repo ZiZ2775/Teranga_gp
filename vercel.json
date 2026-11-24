@@ -1,6 +1,23 @@
 {
-  "buildCommand": "echo 'Static site ready'",
+  "version": 2,
+  "buildCommand": "exit 0",
   "outputDirectory": ".",
+  "public": true,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*).html",
+      "destination": "/$1.html"
+    },
+    {
+      "source": "/(?!.*\\.)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -14,24 +31,10 @@
           "value": "nosniff"
         },
         {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
