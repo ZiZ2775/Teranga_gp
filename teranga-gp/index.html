@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Teranga GP met en relation les GP du Sénégal et la diaspora sénégalaise.">
+<title>Teranga GP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: en-tête simple, héros avec "billet" de trajet, recherche, grille d'annonces, formulaire, règles de confiance. */
+:root{
+  --bg:#F6F7F3; --surface:#FFFFFF; --fg:#13201B; --muted:#55645E; --line:#DCE2DB;
+  --accent:#0B6B52; --accent-ink:#FFFFFF; --soft:#E6F0EA;
+  --sun:#E9A820; --sun-ink:#3A2900; --alert:#B3361F;
+  --font-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --font-body:'Figtree','Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1713; --surface:#14231D; --fg:#E8F0EC; --muted:#9BB0A7; --line:#27403A;
+    --accent:#3DC49A; --accent-ink:#04201A; --soft:#173229;
+    --sun:#F2B93B; --sun-ink:#2A1D00; --alert:#FF8A72; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1713; --surface:#14231D; --fg:#E8F0EC; --muted:#9BB0A7; --line:#27403A;
+  --accent:#3DC49A; --accent-ink:#04201A; --soft:#173229;
+  --sun:#F2B93B; --sun-ink:#2A1D00; --alert:#FF8A72; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.55;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin-inline:auto}
+h1,h2,h3{font-family:var(--font-display);line-height:1.1;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;flex-wrap:wrap}
+.logo{font-family:var(--font-display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.logo i{width:14px;height:14px;border-radius:50%;background:var(--sun);box-shadow:-9px 0 0 var(--accent),9px 0 0 var(--alert);margin-inline:10px}
+nav.links{display:flex;gap:6px;flex-wrap:wrap}
+nav.links a{padding:8px 12px;border-radius:999px;text-decoration:none;color:var(--fg);font-weight:500;font-size:.95rem}
+nav.links a:hover{background:var(--soft)}
+
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding-block:36px 44px}
+.hero h1{font-size:clamp(2.2rem,5.4vw,3.8rem);font-weight:800;letter-spacing:-.03em}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p.lead{margin-top:18px;max-width:52ch;color:var(--muted);font-size:1.1rem}
+.cta-row{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:600;border-radius:12px;padding:12px 20px;border:2px solid var(--accent);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;min-height:46px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:hover{filter:brightness(1.07)}
+.btn[disabled],.btn.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;position:relative;box-shadow:0 18px 40px -24px rgba(0,0,0,.35)}
+.ticket .tag{position:absolute;top:14px;right:14px;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--sun);color:var(--sun-ink);padding:4px 9px;border-radius:999px}
+.ticket .route{padding:26px 24px 20px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.ticket .code{font-family:var(--font-display);font-weight:800;font-size:2.3rem;letter-spacing:-.02em;line-height:1}
+.ticket .city{font-size:.85rem;color:var(--muted);margin-top:4px}
+.ticket .arrow{color:var(--accent)}
+.ticket .arrow svg{display:block;width:56px;height:20px}
+.ticket .cut{border-top:2px dashed var(--line);position:relative;margin-inline:0}
+.ticket .cut::before,.ticket .cut::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.ticket .cut::before{left:-11px}.ticket .cut::after{right:-11px}
+.ticket .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:18px 24px 24px}
+.stats b{display:block;font-family:var(--font-display);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stats span{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+section{padding-block:36px}
+h2{font-size:clamp(1.6rem,3.4vw,2.2rem);font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--muted);margin-top:8px;max-width:60ch}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:20px}
+.tabs{display:inline-flex;background:var(--soft);border-radius:12px;padding:4px;gap:4px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:600;border:0;background:transparent;color:var(--fg);padding:9px 16px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+label{display:flex;flex-direction:column;gap:5px;font-size:.84rem;font-weight:600;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%;min-height:44px}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+
+.count{margin-top:22px;color:var(--muted);font-size:.92rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--accent)}
+.badge.colis{background:var(--sun);color:var(--sun-ink)}
+.badge.ex{background:transparent;border:1px dashed var(--muted);color:var(--muted)}
+.date{font-size:.88rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.card .r{font-family:var(--font-display);font-weight:700;font-size:1.4rem;letter-spacing:-.01em;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.card .r span.to{color:var(--accent)}
+.meta{display:flex;gap:18px;flex-wrap:wrap}
+.meta div{font-size:.8rem;color:var(--muted)}
+.meta b{display:block;font-size:1.1rem;color:var(--fg);font-variant-numeric:tabular-nums}
+.note{font-size:.93rem;color:var(--muted);overflow-wrap:anywhere}
+.card .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.who{font-weight:600;min-width:0}
+.who small{display:block;font-weight:400;color:var(--muted);overflow-wrap:anywhere}
+.btn.small{padding:8px 14px;min-height:40px;font-size:.92rem;border-radius:10px}
+.linkbtn{font:inherit;background:none;border:0;color:var(--alert);cursor:pointer;text-decoration:underline;padding:4px 0}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted);margin-top:12px}
+.empty .btn{margin-top:14px}
+
+form.pub{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:6px}
+form.pub .full{grid-column:1/-1}
+fieldset{border:0;padding:0;margin:0}
+.choice{display:flex;gap:10px;flex-wrap:wrap}
+.choice label{flex-direction:row;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--fg);cursor:pointer;font-size:.95rem}
+.choice input{width:auto;min-height:0;accent-color:var(--accent)}
+.choice label:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.msg{min-height:1.4em;font-weight:600}
+.msg.ok{color:var(--accent)} .msg.err{color:var(--alert)}
+
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px;counter-reset:s}
+.steps li{list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;margin-bottom:10px}
+.steps ul{padding:0;margin:0}
+.steps h3{font-size:1.1rem;margin-bottom:4px}
+.steps p{color:var(--muted);font-size:.94rem}
+
+.safe{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:20px}
+.safe div{border-left:4px solid var(--sun);background:var(--surface);padding:12px 16px;border-radius:0 12px 12px 0;font-size:.95rem}
+.safe b{display:block;margin-bottom:2px}
+
+.tl{list-style:none;margin:14px 0 0;padding:0}
+.tl li{position:relative;padding:0 0 18px 30px;display:flex;flex-direction:column;gap:2px;color:var(--muted)}
+.tl li::before{content:"";position:absolute;left:5px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:var(--surface)}
+.tl li::after{content:"";position:absolute;left:10px;top:18px;bottom:-2px;width:2px;background:var(--line)}
+.tl li:last-child{padding-bottom:0}
+.tl li:last-child::after{display:none}
+.tl li.done::before{background:var(--accent);border-color:var(--accent)}
+.tl li.done::after{background:var(--accent)}
+.tl li.now::before{background:var(--sun);border-color:var(--sun);box-shadow:0 0 0 4px var(--soft)}
+.tl li.done b,.tl li.now b{color:var(--fg)}
+.trk-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.clients{display:grid;gap:8px;margin-top:12px}
+.clients .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.clients .row span{min-width:0;overflow-wrap:anywhere}
+.pay{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.chip{font-weight:600;font-size:.8rem;background:var(--soft);color:var(--fg);padding:4px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.chip.wave::before{background:#1FB6E8}
+.chip.om::before{background:#FF7900}
+.rating{font-size:.9rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rating .st{color:var(--sun);letter-spacing:2px;font-size:1rem}
+.quote{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;overflow-wrap:anywhere}
+.quote b{color:var(--fg)}
+.actions{display:flex;gap:14px;flex-wrap:wrap}
+.actions .linkbtn.soft{color:var(--accent)}
+.badge.flag{background:var(--alert);color:var(--accent-ink)}
+form.inl{display:grid;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+form.inl .row{display:flex;gap:8px;flex-wrap:wrap}
+form.inl .row .btn{flex:0 0 auto}
+footer{padding-block:30px 40px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line);margin-top:20px}
+
+@media (max-width:820px){.hero{grid-template-columns:1fr;gap:28px}}
+@media (max-width:420px){.ticket .code{font-size:1.8rem}.ticket .route{padding-inline:16px}.ticket .stats{padding-inline:16px}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s,box-shadow .15s}.card:hover{transform:translateY(-2px);box-shadow:0 12px 24px -18px rgba(0,0,0,.4)}}
+</style>
+
+<style>body{margin:0}html{-webkit-text-size-adjust:100%}</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><i aria-hidden="true"></i>Teranga GP</div>
+    <nav class="links" aria-label="Navigation">
+      <a href="#annonces">Annonces</a>
+      <a href="#suivi">Suivi colis</a>
+      <a href="#publier">Publier</a>
+      <a href="#securite">Sécurité</a>
+    </nav>
+    <button class="btn ghost small" id="authBtn" type="button" hidden>Se connecter</button>
+  </header>
+  <form class="panel" id="authForm" hidden novalidate>
+    <div class="tabs" role="group" aria-label="Méthode de connexion" style="margin-bottom:12px">
+      <button type="button" id="modePhone" aria-selected="true">Par SMS</button>
+      <button type="button" id="modeEmail" aria-selected="false">Par e-mail</button>
+    </div>
+    <label for="authPhone" id="phoneWrap">Votre numéro avec l'indicatif du pays
+      <input id="authPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+221 77 123 45 67"></label>
+    <label for="authEmail" id="emailWrap" hidden>Votre adresse e-mail
+      <input id="authEmail" type="email" autocomplete="email" placeholder="vous@exemple.com"></label>
+    <label for="authCode" id="codeWrap" hidden style="margin-top:12px">Code reçu par SMS
+      <input id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456"></label>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px">
+      <button class="btn primary small" type="submit" id="authSubmit">Recevoir un code par SMS</button>
+      <span class="msg" id="authMsg" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <div class="hero">
+    <div>
+      <h1>De main en main, du Sénégal à <em>la diaspora</em>.</h1>
+      <p class="lead">Teranga GP met en relation les GP en partance et les personnes qui ont un colis à envoyer ou à recevoir. Trouvez un voyageur sur votre trajet, ou proposez vos kilos disponibles.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#annonces">Trouver un GP</a>
+        <a class="btn ghost" href="#publier">Publier une annonce</a>
+      </div>
+    </div>
+    <div class="ticket" aria-label="Exemple d'annonce de GP">
+      <span class="tag">Exemple</span>
+      <div class="route">
+        <div><div class="code">PAR</div><div class="city">Paris</div></div>
+        <div class="arrow" aria-hidden="true"><svg viewBox="0 0 56 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14 C16 -2 38 -2 52 10"/><path d="M45 6l7 4-8 3"/></svg></div>
+        <div style="text-align:right"><div class="code">DKR</div><div class="city">Dakar</div></div>
+      </div>
+      <div class="cut"></div>
+      <div class="stats">
+        <div><b>12 déc.</b><span>Départ</span></div>
+        <div><b>23 kg</b><span>Disponibles</span></div>
+        <div><b>9 €/kg</b><span>Tarif</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="annonces">
+    <h2>Les annonces</h2>
+    <p class="sub">Filtrez par ville de départ et d'arrivée. Contactez directement la personne sur WhatsApp.</p>
+    <div class="panel">
+      <div class="tabs" role="tablist" aria-label="Type d'annonce">
+        <button role="tab" id="tab-gp" aria-selected="true" data-kind="gp">GP qui voyagent</button>
+        <button role="tab" id="tab-colis" aria-selected="false" data-kind="colis">Colis à envoyer</button>
+      </div>
+      <div class="filters">
+        <label for="f-from">Départ
+          <select id="f-from"></select></label>
+        <label for="f-to">Arrivée
+          <select id="f-to"></select></label>
+        <label for="f-date">À partir du
+          <input type="date" id="f-date"></label>
+        <label for="f-kg">Poids minimum (kg)
+          <input type="number" id="f-kg" min="0" step="1" inputmode="numeric" placeholder="0"></label>
+      </div>
+    </div>
+    <p class="count" id="count" aria-live="polite"></p>
+    <p class="msg" id="gmsg" role="status" aria-live="polite"></p>
+    <div class="grid" id="grid"></div>
+    <div id="empty" class="empty" hidden>
+      <p>Aucune annonce pour ce trajet pour le moment.</p>
+      <button class="btn primary small" type="button" id="goPublish">Publier la vôtre</button>
+    </div>
+    <p class="sub" id="shareNote" style="margin-top:14px"></p>
+  </section>
+
+  <section id="suivi">
+    <h2>Suivre un colis</h2>
+    <p class="sub">Entrez le code de suivi donné par l'expéditeur ou le GP. Vous voyez où en est le colis, de la remise à la livraison.</p>
+    <div class="panel">
+      <form id="trk-form" class="inl" style="background:transparent;border:0;padding:0" novalidate>
+        <label for="trk-code">Code de suivi
+          <input id="trk-code" placeholder="TGP-7K2M9Q" autocomplete="off" maxlength="20"></label>
+        <div class="row"><button class="btn primary small" type="submit">Suivre</button><span class="msg" id="trk-msg" role="status" aria-live="polite"></span></div>
+      </form>
+      <p class="note" id="trk-demo" style="margin-top:8px">Pour voir un exemple, saisissez TGP-DEMO.</p>
+      <div id="trk-res" hidden style="margin-top:16px"></div>
+    </div>
+    <p class="sub" id="trk-login" hidden>Connectez-vous pour enregistrer un colis ou prendre en charge celui d'un client.</p>
+    <div id="trk-tools" hidden>
+      <h3 style="margin-top:28px;font-size:1.3rem">Mes colis</h3>
+      <div class="panel">
+        <h3 style="font-size:1.05rem;margin-bottom:12px">Enregistrer un colis à envoyer</h3>
+        <form class="pub" id="trk-new" novalidate>
+          <label for="trk-label" class="full">Contenu du colis
+            <input id="trk-label" maxlength="80" placeholder="Ex. Valise de vêtements"></label>
+          <label for="trk-from">Ville de départ
+            <input id="trk-from" list="villes" autocomplete="off" placeholder="Ex. Paris"></label>
+          <label for="trk-to">Ville d'arrivée
+            <input id="trk-to" list="villes" autocomplete="off" placeholder="Ex. Dakar"></label>
+          <label for="trk-sphone">Votre WhatsApp (facultatif)
+            <input id="trk-sphone" type="tel" inputmode="tel" placeholder="+33 6 12 34 56 78"></label>
+          <label for="trk-rphone">WhatsApp du destinataire (facultatif)
+            <input id="trk-rphone" type="tel" inputmode="tel" placeholder="+221 77 123 45 67"></label>
+          <div class="full"><button class="btn primary small" type="submit">Enregistrer le colis</button></div>
+        </form>
+      </div>
+      <div class="panel" id="trk-created" hidden></div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem;margin-bottom:12px">Je suis GP : prendre un colis en charge</h3>
+        <form id="trk-take" class="inl" novalidate>
+          <label for="trk-takecode">Code de suivi donné par l'expéditeur
+            <input id="trk-takecode" autocomplete="off" maxlength="20" placeholder="TGP-7K2M9Q"></label>
+          <div class="row"><button class="btn primary small" type="submit">Prendre en charge</button></div>
+        </form>
+      </div>
+      <p class="msg" id="trk-tmsg" role="status" aria-live="polite" style="margin-top:12px"></p>
+      <div class="grid" id="trk-list"></div>
+    </div>
+  </section>
+
+  <section id="publier">
+    <h2>Publier une annonce</h2>
+    <p class="sub">Gratuit. Votre numéro WhatsApp est affiché sur l'annonce pour que les personnes intéressées puissent vous écrire.</p>
+    <div class="panel">
+      <form class="pub" id="pubForm" novalidate>
+        <fieldset class="full">
+          <legend style="font-size:.84rem;font-weight:600;color:var(--muted);margin-bottom:6px">Vous êtes</legend>
+          <div class="choice">
+            <label><input type="radio" name="kind" value="gp" checked> Je voyage (GP)</label>
+            <label><input type="radio" name="kind" value="colis"> J'ai un colis à envoyer</label>
+          </div>
+        </fieldset>
+        <label for="p-from">Ville de départ
+          <input id="p-from" list="villes" required autocomplete="off" placeholder="Ex. Paris"></label>
+        <label for="p-to">Ville d'arrivée
+          <input id="p-to" list="villes" required autocomplete="off" placeholder="Ex. Dakar"></label>
+        <label for="p-date">Date du voyage
+          <input id="p-date" type="date" required></label>
+        <label for="p-kg" id="p-kg-l">Kilos disponibles
+          <input id="p-kg" type="number" min="1" max="100" step="1" inputmode="numeric" required placeholder="20"></label>
+        <label for="p-price" id="p-price-l">Prix par kilo
+          <input id="p-price" type="number" min="0" step="0.5" inputmode="decimal" required placeholder="9"></label>
+        <label for="p-cur">Devise
+          <select id="p-cur"><option value="€">Euro (€)</option><option value="FCFA">Franc CFA (FCFA)</option><option value="$">Dollar ($)</option></select></label>
+        <fieldset class="full">
+          <legend style="font-size:.84rem;font-weight:600;color:var(--muted);margin-bottom:6px">Paiement accepté au Sénégal</legend>
+          <div class="choice">
+            <label><input type="checkbox" name="pay" value="Wave"> Wave</label>
+            <label><input type="checkbox" name="pay" value="Orange Money"> Orange Money</label>
+            <label><input type="checkbox" name="pay" value="Espèces"> Espèces</label>
+            <label><input type="checkbox" name="pay" value="Carte ou virement"> Carte ou virement</label>
+          </div>
+        </fieldset>
+        <label for="p-name">Votre prénom et initiale
+          <input id="p-name" required maxlength="40" autocomplete="given-name" placeholder="Ex. Awa D."></label>
+        <label for="p-phone">Numéro WhatsApp
+          <input id="p-phone" type="tel" required inputmode="tel" autocomplete="tel" placeholder="+33 6 12 34 56 78"></label>
+        <label for="p-note" class="full">Précisions (ce que vous acceptez ou refusez, lieu de remise)
+          <textarea id="p-note" maxlength="280" placeholder="Ex. Remise à Château Rouge. Pas de liquides ni de produits périssables."></textarea></label>
+        <datalist id="villes"></datalist>
+        <div class="full" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <button class="btn primary" type="submit">Publier l'annonce</button>
+          <span class="msg" id="msg" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+    </div>
+    <div class="panel" id="notify" hidden aria-live="polite"></div>
+    <p class="sub" id="myClientsLink" hidden style="margin-top:12px"><button type="button" class="linkbtn soft" id="openClients" style="color:var(--accent)">Voir mes clients et les prévenir</button></p>
+  </section>
+
+  <section id="fonctionnement">
+    <h2>Comment ça marche</h2>
+    <ul class="steps" style="padding:0">
+      <li><h3>Publiez</h3><p>Le GP indique son trajet, sa date et ses kilos. L'expéditeur décrit son colis et son budget.</p></li>
+      <li><h3>Écrivez-vous</h3><p>Échangez sur WhatsApp pour vous mettre d'accord sur le contenu, le prix et le lieu de remise.</p></li>
+      <li><h3>Remettez et payez</h3><p>Rencontrez-vous, vérifiez le colis ensemble, puis payez comme convenu : Wave ou Orange Money au Sénégal, espèces ou virement ailleurs.</p></li>
+    </ul>
+  </section>
+
+  <section id="securite">
+    <h2>Règles de confiance</h2>
+    <p class="sub">Un GP engage sa responsabilité à la douane. Ces règles protègent les deux côtés.</p>
+    <div class="safe">
+      <div><b>Jamais de colis fermé inconnu</b>Voyez et faites décrire chaque objet avant de le prendre en charge.</div>
+      <div><b>Respectez la douane</b>Pas de médicaments sans ordonnance, d'espèces au-delà du seuil légal, de contrefaçons ni de produits interdits.</div>
+      <div><b>Vérifiez l'identité</b>Demandez une pièce d'identité et la preuve du billet avant de remettre un colis.</div>
+      <div><b>Payez à la remise</b>Évitez les avances importantes à une personne que vous n'avez jamais rencontrée.</div>
+      <div><b>Wave et Orange Money</b>Au Sénégal, payez à la remise du colis. Vérifiez le nom affiché avant de valider et gardez la capture de la confirmation.</div>
+      <div><b>Rencontrez-vous en public</b>Gare, aéroport, commerce ou lieu fréquenté. Gardez photos et messages.</div>
+    </div>
+  </section>
+
+  <footer>
+    Teranga GP est un prototype. Les annonces marquées « Exemple » sont fictives. La plateforme met en relation des particuliers et n'est pas partie aux transports de colis. <a href="legal.html">Conditions et confidentialité</a>. Les paiements (Wave, Orange Money, espèces) se font directement entre utilisateurs : la plateforme ne les traite pas.
+  </footer>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+<script>
+/* Couche de données Supabase : reproduit l'interface utilisée par la page (db, user). */
+(function(){
+  var cfg=window.TGP_CONFIG;
+  if(!cfg||!cfg.url||!cfg.anonKey||/VOTRE/.test(cfg.url)||!window.supabase) return;
+  var sb=window.supabase.createClient(cfg.url,cfg.anonKey);
+  var session=null, admin=false;
+  var ready=(async function(){
+    try{
+      var r=await sb.auth.getSession(); session=r.data.session;
+      if(session){
+        var a=await sb.from('admins').select('user_id').eq('user_id',session.user.id);
+        admin=!!(a.data&&a.data.length);
+      }
+    }catch(e){}
+  })();
+  function snapOf(row){ return {id:row.id,exists:true,data:function(){return row.data}}; }
+  function docRef(path){
+    var p=path.split('/'), col=p[0], id=p[1];
+    return {
+      get:async function(){
+        await ready;
+        var r=await sb.from('docs').select('id,data').eq('collection',col).eq('id',id).maybeSingle();
+        if(r.error) throw r.error;
+        return r.data?snapOf(r.data):{id:id,exists:false,data:function(){return undefined}};
+      },
+      set:async function(d){
+        await ready;
+        var r=await sb.from('docs').upsert({collection:col,id:id,data:d,updated_at:new Date().toISOString()});
+        if(r.error) throw r.error;
+      }
+    };
+  }
+  function colRef(name){
+    return {
+      onSnapshot:function(next,err){
+        var dead=false;
+        async function load(){
+          await ready;
+          var r=await sb.from('docs').select('id,data').eq('collection',name);
+          if(dead) return;
+          if(r.error){ if(err) err(r.error); return; }
+          next({docs:r.data.map(snapOf)});
+        }
+        load();
+        var ch=sb.channel('docs-'+name+'-'+Math.random().toString(36).slice(2))
+          .on('postgres_changes',{event:'*',schema:'public',table:'docs'},load).subscribe();
+        var t=setInterval(load,30000);
+        return function(){ dead=true; clearInterval(t); sb.removeChannel(ch); };
+      }
+    };
+  }
+  var api={
+    db:{doc:docRef,collection:colRef},
+    user:{
+      id:async function(){ await ready; return session?session.user.id:null; },
+      canEdit:async function(){ await ready; return admin; }
+    }
+  };
+  window.claude={use:async function(n){ return api[n]||null; }};
+  function isUuid(s){ return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s||''); }
+  window.TGP_SUBS={
+    follow:async function(gpId,name,phone){
+      await ready; if(!session||!isUuid(gpId)) throw new Error('auth');
+      var r=await sb.from('abonnes').upsert({gp_id:gpId,client_id:session.user.id,name:name,phone:phone});
+      if(r.error) throw r.error;
+    },
+    unfollow:async function(gpId){
+      await ready; if(!session) throw new Error('auth');
+      var r=await sb.from('abonnes').delete().eq('gp_id',gpId).eq('client_id',session.user.id);
+      if(r.error) throw r.error;
+    },
+    mine:async function(){
+      await ready; if(!session) return [];
+      var r=await sb.from('abonnes').select('gp_id').eq('client_id',session.user.id);
+      if(r.error) throw r.error;
+      return r.data.map(function(x){return x.gp_id});
+    },
+    myClients:async function(){
+      await ready; if(!session) return [];
+      var r=await sb.from('abonnes').select('name,phone').eq('gp_id',session.user.id).order('created_at');
+      if(r.error) throw r.error;
+      return r.data;
+    }
+  };
+  window.TGP_TRACK={
+    voir:async function(code){
+      var r=await sb.rpc('suivi_voir',{p_code:code});
+      if(r.error) throw r.error;
+      return (r.data&&r.data[0])||null;
+    },
+    creer:async function(label,from,to,sender,recipient){
+      await ready;
+      var r=await sb.rpc('suivi_creer',{p_label:label,p_from:from,p_to:to,p_sender:sender||'',p_recipient:recipient||''});
+      if(r.error) throw r.error;
+      return r.data&&r.data[0];
+    },
+    prendre:async function(code){
+      await ready;
+      var r=await sb.rpc('suivi_prendre',{p_code:code});
+      if(r.error) throw r.error;
+    },
+    maj:async function(code,status,note,pin){
+      await ready;
+      var r=await sb.rpc('suivi_maj',{p_code:code,p_status:status,p_note:note||'',p_pin:pin||null});
+      if(r.error) throw r.error;
+      return r.data;
+    },
+    mes:async function(){
+      await ready;
+      var r=await sb.rpc('suivi_mes');
+      if(r.error) throw r.error;
+      return r.data||[];
+    }
+  };
+  if(cfg.payments){
+    var fbase=cfg.functionsBase||'/.netlify/functions';
+    var callFn=async function(name,body){
+      await ready; if(!session) throw new Error('auth');
+      var r=await fetch(fbase+'/'+name,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify(body)});
+      var j=await r.json().catch(function(){return {}});
+      if(!r.ok) throw new Error(j.error||'erreur');
+      return j;
+    };
+    window.TGP_PAY={
+      priceLabel:cfg.featurePriceLabel||'1 000 FCFA',
+      featured:async function(){
+        var r=await sb.from('mises_en_avant').select('item_id,until').gt('until',new Date().toISOString());
+        var m={}; if(!r.error) r.data.forEach(function(x){ m[x.item_id]=x.until; });
+        return m;
+      },
+      boost:async function(itemId){
+        var j=await callFn('wave-checkout',{itemId:itemId});
+        if(!j.url||j.url.indexOf('https://')!==0) throw new Error('url');
+        location.href=j.url;
+      },
+      confirm:async function(ref){ var j=await callFn('wave-confirm',{ref:ref}); return !!j.ok; }
+    };
+  }
+  window.TGP_AUTH={
+    ready:ready,
+    session:function(){return session},
+    signIn:function(email){ return sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.origin+location.pathname}}); },
+    signInPhone:function(phone){ return sb.auth.signInWithOtp({phone:phone}); },
+    verifyPhone:function(phone,token){ return sb.auth.verifyOtp({phone:phone,token:token,type:'sms'}); },
+    signOut:function(){ return sb.auth.signOut(); }
+  };
+})();
+</script>
+<script>
+(function(){
+  var A=window.TGP_AUTH; if(!A) return;
+  var btn=document.getElementById('authBtn'), form=document.getElementById('authForm'), msg=document.getElementById('authMsg');
+  btn.hidden=false;
+  A.ready.then(function(){ var s=A.session(); if(s) btn.textContent='Se déconnecter ('+(s.user.email||s.user.phone||'')+')'; });
+  btn.addEventListener('click',async function(){
+    if(A.session()){ await A.signOut(); location.reload(); return; }
+    form.hidden=!form.hidden;
+    if(!form.hidden) document.getElementById('authEmail').focus();
+  });
+  var $=function(id){return document.getElementById(id)};
+  var mode='phone', codeSent=false;
+  function setMode(m){
+    mode=m; codeSent=false;
+    $('modePhone').setAttribute('aria-selected',m==='phone'?'true':'false');
+    $('modeEmail').setAttribute('aria-selected',m==='email'?'true':'false');
+    $('phoneWrap').hidden=m!=='phone'; $('emailWrap').hidden=m!=='email'; $('codeWrap').hidden=true;
+    $('authSubmit').textContent=m==='phone'?'Recevoir un code par SMS':'Recevoir un lien de connexion';
+    msg.textContent='';
+  }
+  $('modePhone').addEventListener('click',function(){setMode('phone')});
+  $('modeEmail').addEventListener('click',function(){setMode('email')});
+  function fail(t){ msg.className='msg err'; msg.textContent=t; }
+  function ok(t){ msg.className='msg ok'; msg.textContent=t; }
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    msg.className='msg'; msg.textContent='Envoi en cours…';
+    if(mode==='email'){
+      var em=$('authEmail').value.trim(); if(!em){ fail('Entrez votre adresse e-mail.'); return; }
+      var r=await A.signIn(em);
+      if(r.error) fail('Envoi impossible. Vérifiez l\'adresse e-mail.');
+      else ok('Lien envoyé. Ouvrez votre e-mail et cliquez dessus.');
+      return;
+    }
+    var ph=$('authPhone').value.replace(/[\s().-]/g,'');
+    if(!/^\+\d{8,15}$/.test(ph)){ fail('Entrez le numéro avec le + et l\'indicatif du pays, par exemple +221771234567.'); return; }
+    if(!codeSent){
+      var r2=await A.signInPhone(ph);
+      if(r2.error){ fail('Envoi du SMS impossible. Vérifiez le numéro ou réessayez plus tard.'); return; }
+      codeSent=true; $('codeWrap').hidden=false; $('authSubmit').textContent='Valider le code'; $('authCode').focus();
+      ok('Code envoyé par SMS. Saisissez-le ci-dessus.');
+      return;
+    }
+    var code=$('authCode').value.trim(); if(!code){ fail('Saisissez le code reçu.'); return; }
+    var r3=await A.verifyPhone(ph,code);
+    if(r3.error) fail('Code incorrect ou expiré. Demandez un nouveau code.');
+    else location.reload();
+  });
+})();
+</script>
+<script>
+(function(){
+  var SN=['Dakar','Thiès','Saint-Louis','Touba','Mbour','Kaolack','Ziguinchor'];
+  var DI=['Paris','Lyon','Marseille','Lille','Bordeaux','Bruxelles','Madrid','Barcelone','Milan','Rome','Turin','Londres','Genève','New York','Atlanta','Montréal','Casablanca','Abidjan'];
+  var ALL=SN.concat(DI).sort(function(a,b){return a.localeCompare(b,'fr')});
+  var SAMPLES=[
+    {id:'s1',kind:'gp',from:'Paris',to:'Dakar',date:'2026-12-12',kg:23,price:9,cur:'€',name:'Awa D.',note:'Vol direct depuis CDG. Vêtements, cosmétiques, électronique. Remise à Château Rouge.',pay:['Wave','Orange Money','Espèces']},
+    {id:'s2',kind:'gp',from:'Dakar',to:'Paris',date:'2026-12-20',kg:15,price:10,cur:'€',name:'Moussa N.',note:'Je rapporte aussi bien du thiakry que des tissus. Pas de liquides.',pay:['Wave','Espèces']},
+    {id:'s3',kind:'gp',from:'Milan',to:'Dakar',date:'2026-12-18',kg:30,price:7,cur:'€',name:'Ibrahima S.',note:'Départ de Malpensa. Gros colis acceptés si bien emballés.'},
+    {id:'s4',kind:'gp',from:'Bruxelles',to:'Dakar',date:'2027-01-05',kg:18,price:8,cur:'€',name:'Fatou B.',note:'Remise possible à la gare du Midi.'},
+    {id:'s5',kind:'gp',from:'Montréal',to:'Dakar',date:'2027-01-14',kg:20,price:12,cur:'$',name:'Cheikh T.',note:'Via Casablanca. Colis de moins de 10 kg en priorité.'},
+    {id:'s6',kind:'colis',from:'Paris',to:'Dakar',date:'2026-12-15',kg:8,price:8,cur:'€',name:'Mariama K.',note:'Cherche un GP pour des vêtements d\'enfants et des chaussures, colis ouvert et vérifiable.'},
+    {id:'s7',kind:'colis',from:'Dakar',to:'Lyon',date:'2026-12-22',kg:5,price:7000,cur:'FCFA',name:'Ousmane F.',note:'Épices et bissap séchés, emballés sous vide.',pay:['Orange Money']},
+    {id:'s8',kind:'colis',from:'Madrid',to:'Thiès',date:'2027-01-08',kg:12,price:6,cur:'€',name:'Aminata L.',note:'Un téléphone et des vêtements pour ma mère.'}
+  ];
+  var kind='gp', shared=[], local=[], db=null, uid=null, reviews=[], reports={}, isAdmin=false, openPanel=null, reportedSet={}, followed={}, featuredMap={};
+  try{ reportedSet=JSON.parse(localStorage.getItem('tgp-reported')||'{}')||{}; }catch(e){ reportedSet={}; }
+  var $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+  try{ local=JSON.parse(localStorage.getItem('tgp-local')||'[]')||[]; }catch(e){ local=[]; }
+  function saveLocal(){ try{ localStorage.setItem('tgp-local',JSON.stringify(local)); }catch(e){} }
+
+  function fillSelect(sel,label){
+    var h='<option value="">'+label+'</option>';
+    h+='<optgroup label="Sénégal">'+SN.map(function(c){return '<option>'+c+'</option>'}).join('')+'</optgroup>';
+    h+='<optgroup label="Diaspora">'+DI.map(function(c){return '<option>'+c+'</option>'}).join('')+'</optgroup>';
+    sel.innerHTML=h;
+  }
+  fillSelect($('f-from'),'Toutes les villes'); fillSelect($('f-to'),'Toutes les villes');
+  $('villes').innerHTML=ALL.map(function(c){return '<option value="'+c+'">'}).join('');
+
+  var today=new Date(); today.setHours(0,0,0,0);
+  var todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  $('p-date').min=todayStr;
+
+  function fmtDate(s){
+    var p=s.split('-'); if(p.length!==3) return s;
+    var d=new Date(+p[0],+p[1]-1,+p[2]);
+    return d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  }
+  function fmtPrice(p,c){ return (c==='FCFA'?Number(p).toLocaleString('fr-FR'):String(p).replace('.',','))+' '+c+'/kg'; }
+
+  function allItems(){
+    var seen={}, out=[];
+    SAMPLES.concat(shared,local).forEach(function(it){ if(it&&it.id&&!seen[it.id]){seen[it.id]=1;out.push(it)} });
+    return out;
+  }
+
+  async function showNotify(it){
+    var box=$('notify'); box.hidden=false;
+    box.innerHTML='<p class="note">Chargement de vos clients…</p>';
+    var list=[]; try{ list=await window.TGP_SUBS.myClients(); }catch(e){}
+    var msg=it?('Bonjour ! Nouveau voyage '+it.from+' → '+it.to+' le '+fmtDate(it.date)+' : '+it.kg+' kg disponibles à '+fmtPrice(it.price,it.cur)+'. Écrivez-moi pour réserver.'):'Bonjour ! J\'ai un nouveau voyage. Écrivez-moi pour réserver.';
+    var h='<h3 style="font-size:1.15rem">Prévenir vos clients</h3>';
+    if(!list.length){ box.innerHTML=h+'<p class="sub">Personne ne vous suit encore. Vos clients peuvent cliquer sur « Suivre ce GP » sur votre annonce.</p>'; return; }
+    h+='<p class="sub">'+list.length+(list.length>1?' clients vous suivent':' client vous suit')+'. Modifiez le message, puis envoyez-le à chacun sur WhatsApp en un clic.</p>';
+    h+='<label for="nt-msg" style="margin-top:12px">Message<textarea id="nt-msg" maxlength="400">'+esc(msg)+'</textarea></label>';
+    h+='<div class="clients">'+list.map(function(c){ return '<div class="row"><span><b>'+esc(c.name)+'</b> <small class="date">'+esc(c.phone)+'</small></span><a class="btn primary small" target="_blank" rel="noopener" data-phone="'+esc(String(c.phone).replace(/\D/g,''))+'" href="#">Envoyer sur WhatsApp</a></div>'; }).join('')+'</div>';
+    box.innerHTML=h;
+    function refresh(){ var t=encodeURIComponent($('nt-msg').value); box.querySelectorAll('[data-phone]').forEach(function(a){ a.href='https://wa.me/'+a.getAttribute('data-phone')+'?text='+t; }); }
+    $('nt-msg').addEventListener('input',refresh); refresh();
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function payHtml(it){
+    var ok=['Wave','Orange Money','Espèces','Carte ou virement'];
+    var l=(Array.isArray(it.pay)?it.pay:[]).filter(function(x){return ok.indexOf(x)>=0});
+    if(!l.length) return '';
+    return '<div class="pay"><span>Paiement</span>'+l.map(function(x){return '<b class="chip '+(x==='Wave'?'wave':x==='Orange Money'?'om':'')+'">'+x+'</b>'}).join('')+'</div>';
+  }
+  function gmsg(t,cls){ var m=$('gmsg'); m.textContent=t; m.className='msg '+(cls||''); }
+  function dg(p){ return String(p||'').replace(/\D/g,'').replace(/^00/,''); }
+  function starsTxt(n){ n=Math.max(0,Math.min(5,Math.round(n))); return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n); }
+  function reviewsFor(key){ return key?reviews.filter(function(r){return r&&r.key===key}):[]; }
+  function ratingHtml(it,key){
+    if(!key) return '';
+    var rs=reviewsFor(key), n=rs.length, sum=0;
+    rs.forEach(function(r){ sum+=Math.max(1,Math.min(5,Number(r.stars)||0)); });
+    var h='<div class="rating">';
+    if(n){ var avg=sum/n; h+='<span class="st" aria-hidden="true">'+starsTxt(avg)+'</span><span>'+avg.toFixed(1).replace('.',',')+' sur 5 · '+n+(n>1?' avis':' avis')+'</span>'; }
+    else h+='<span>Pas encore d\'avis</span>';
+    h+='</div>';
+    rs.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0)}).slice(0,2).forEach(function(r){
+      if(r.text) h+='<p class="quote"><b>'+esc(r.author||'Anonyme')+'</b> '+starsTxt(Number(r.stars)||0)+' '+esc(r.text)+'</p>';
+    });
+    return h;
+  }
+  function panelHtml(it,key){
+    if(!openPanel||openPanel.id!==it.id) return '';
+    var id=esc(it.id);
+    if(openPanel.type==='fol'){
+      return '<form class="inl" data-id="'+id+'" data-type="fol">'
+        +'<p class="note">Vous serez prévenu des prochains voyages de '+esc(it.name)+' sur WhatsApp.</p>'
+        +'<label for="fo-n-'+id+'">Votre prénom<input id="fo-n-'+id+'" name="fname" maxlength="40" required></label>'
+        +'<label for="fo-p-'+id+'">Votre numéro WhatsApp<input id="fo-p-'+id+'" name="fphone" type="tel" inputmode="tel" placeholder="+221 77 123 45 67" required></label>'
+        +'<label for="fo-c-'+id+'" style="flex-direction:row;align-items:flex-start;gap:8px;color:var(--fg);font-weight:400"><input id="fo-c-'+id+'" name="consent" type="checkbox" style="width:auto;min-height:0;margin-top:4px"> J\'accepte que ce GP voie mon prénom et mon numéro pour me prévenir de ses voyages. Je peux me désabonner à tout moment.</label>'
+        +'<div class="row"><button class="btn primary small" type="submit">Suivre ce GP</button><button class="btn ghost small" type="button" data-cancel="1">Annuler</button></div></form>';
+    }
+    if(openPanel.type==='rev'){
+      return '<form class="inl" data-id="'+id+'" data-type="rev">'
+        +'<label for="rv-s-'+id+'">Note<select id="rv-s-'+id+'" name="stars"><option value="5">5 · Excellent</option><option value="4">4 · Bien</option><option value="3">3 · Moyen</option><option value="2">2 · Décevant</option><option value="1">1 · Mauvais</option></select></label>'
+        +'<label for="rv-a-'+id+'">Votre prénom<input id="rv-a-'+id+'" name="author" maxlength="30" required></label>'
+        +'<label for="rv-t-'+id+'">Votre expérience<textarea id="rv-t-'+id+'" name="text" maxlength="200" placeholder="Ponctuel, colis remis en bon état..."></textarea></label>'
+        +'<div class="row"><button class="btn primary small" type="submit">Publier l\'avis</button><button class="btn ghost small" type="button" data-cancel="1">Annuler</button></div></form>';
+    }
+    return '<form class="inl" data-id="'+id+'" data-type="rep">'
+      +'<label for="rp-r-'+id+'">Motif<select id="rp-r-'+id+'" name="reason"><option>Arnaque suspectée</option><option>Produit interdit ou dangereux</option><option>Contenu inapproprié</option><option>Annonce en double ou périmée</option><option>Autre</option></select></label>'
+      +'<div class="row"><button class="btn primary small" type="submit">Envoyer le signalement</button><button class="btn ghost small" type="button" data-cancel="1">Annuler</button></div></form>';
+  }
+  function render(){
+    var f=$('f-from').value, t=$('f-to').value, d=$('f-date').value, kg=parseFloat($('f-kg').value)||0;
+    var items=allItems().filter(function(it){
+      if(it.kind!==kind) return false;
+      if(it.date<todayStr) return false;
+      if(f&&it.from!==f) return false;
+      if(t&&it.to!==t) return false;
+      if(d&&it.date<d) return false;
+      if(kg&&Number(it.kg)<kg) return false;
+      return true;
+    }).sort(function(a,b){var fa=featuredMap[a.id]?1:0, fb=featuredMap[b.id]?1:0; if(fa!==fb) return fb-fa; return a.date<b.date?-1:a.date>b.date?1:0});
+    $('count').textContent=items.length+(items.length>1?' annonces':' annonce');
+    $('empty').hidden=items.length>0;
+    $('grid').innerHTML=items.map(function(it){
+      var digits=String(it.phone||'').replace(/\D/g,'').replace(/^00/,'');
+      var msg=it.kind==='gp'?'Bonjour, je vous contacte via Teranga GP pour votre trajet '+it.from+' → '+it.to+'.':'Bonjour, je vous contacte via Teranga GP au sujet de votre colis '+it.from+' → '+it.to+'.';
+      var contact=digits?'<a class="btn primary small" target="_blank" rel="noopener" href="https://wa.me/'+digits+'?text='+encodeURIComponent(msg)+'">WhatsApp</a>':'<span class="btn primary small disabled">Exemple</span>';
+      var mine=(it.local)||(uid&&it.owner===uid);
+      return '<article class="card">'
+        +'<div class="top"><span class="badge '+(it.kind==='colis'?'colis':'')+'">'+(it.kind==='gp'?'GP':'Colis')+'</span>'
+        +(it.id.charAt(0)==='s'&&it.id.length<4?'<span class="badge ex">Exemple</span>':'')
+        +(featuredMap[it.id]?'<span class="badge">À la une</span>':'')
+        +((isAdmin&&reports[it.id])?'<span class="badge flag">'+reports[it.id]+' signalement'+(reports[it.id]>1?'s':'')+'</span>':'')
+        +'<span class="date">'+esc(fmtDate(it.date))+'</span></div>'
+        +'<div class="r"><span>'+esc(it.from)+'</span><span class="to">→ '+esc(it.to)+'</span></div>'
+        +'<div class="meta"><div><b>'+esc(it.kg)+' kg</b>'+(it.kind==='gp'?'disponibles':'à envoyer')+'</div><div><b>'+esc(fmtPrice(it.price,it.cur))+'</b>'+(it.kind==='gp'?'tarif':'budget')+'</div></div>'
+        +(it.note?'<p class="note">'+esc(it.note)+'</p>':'')
+        +payHtml(it)
+        +(it.kind==='gp'?ratingHtml(it,digits):'')
+        +panelHtml(it,digits)
+        +'<div class="foot"><div class="who">'+esc(it.name)+(digits?'<small>+'+esc(digits)+'</small>':'')+'</div>'+contact+'</div>'
+        +'<div class="actions">'
+          +((window.TGP_SUBS&&it.kind==='gp'&&it.owner&&!mine)?(followed[it.owner]?'<button class="linkbtn soft" type="button" data-unfollow="'+esc(it.owner)+'">Ne plus suivre ce GP</button>':'<button class="linkbtn soft" type="button" data-open="'+esc(it.id)+'" data-type="fol">Suivre ce GP</button>'):'')
+          +((it.kind==='gp'&&digits&&!mine)?'<button class="linkbtn soft" type="button" data-open="'+esc(it.id)+'" data-type="rev">Laisser un avis</button>':'')
+          +((it.owner||it.local)&&!mine?(reportedSet[it.id]?'<span class="date">Signalée</span>':'<button class="linkbtn" type="button" data-open="'+esc(it.id)+'" data-type="rep">Signaler</button>'):'')
+          +((window.TGP_PAY&&mine&&it.kind==='gp'&&!it.local&&!featuredMap[it.id])?'<button class="linkbtn soft" type="button" data-boost="'+esc(it.id)+'">Mettre en avant ('+esc(window.TGP_PAY.priceLabel)+')</button>':'')
+          +((mine||(isAdmin&&it.owner))?'<button class="linkbtn" type="button" data-del="'+esc(it.id)+'" data-owner="'+esc(it.owner||'')+'">'+(mine?'Retirer mon annonce':'Retirer (modération)')+'</button>':'')
+        +'</div>'
+        +'</article>';
+    }).join('');
+  }
+
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click',function(){
+      kind=b.dataset.kind;
+      document.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected',x===b?'true':'false')});
+      render();
+    });
+  });
+  ['f-from','f-to','f-date','f-kg'].forEach(function(id){ $(id).addEventListener('input',render); });
+  $('goPublish').addEventListener('click',function(){ $('publier').scrollIntoView({behavior:'smooth'}); $('p-from').focus({preventScroll:true}); });
+
+  document.querySelectorAll('input[name=kind]').forEach(function(r){
+    r.addEventListener('change',function(){
+      var gp=document.querySelector('input[name=kind]:checked').value==='gp';
+      $('p-kg-l').firstChild.textContent=gp?'Kilos disponibles':'Poids du colis (kg)';
+      $('p-price-l').firstChild.textContent=gp?'Prix par kilo':'Budget par kilo';
+      $('p-date').previousSibling.textContent=gp?'Date du voyage':'Envoi souhaité avant le';
+    });
+  });
+
+  function setMsg(t,cls){ var m=$('msg'); m.textContent=t; m.className='msg '+(cls||''); }
+
+  async function saveShared(it){
+    if(!db||!uid) return false;
+    try{
+      var ref=db.doc('annonces/'+uid), snap=await ref.get();
+      var items=(snap.exists&&snap.data().items)||[];
+      await ref.set({items:items.concat([it]).slice(-20)});
+      return true;
+    }catch(e){ return false; }
+  }
+  async function removeItem(id,ownerId){
+    var i=local.findIndex(function(x){return x.id===id});
+    if(i>=0){ local.splice(i,1); saveLocal(); render(); return; }
+    if(db&&uid){
+      try{
+        var ref=db.doc('annonces/'+(ownerId||uid)), snap=await ref.get();
+        var items=((snap.exists&&snap.data().items)||[]).filter(function(x){return x.id!==id});
+        await ref.set({items:items});
+      }catch(e){}
+    }
+  }
+  $('grid').addEventListener('click',function(e){
+    var b;
+    if(b=e.target.closest('[data-del]')){ removeItem(b.getAttribute('data-del'),b.getAttribute('data-owner')); return; }
+    if(b=e.target.closest('[data-open]')){
+      var id=b.getAttribute('data-open'), ty=b.getAttribute('data-type');
+      openPanel=(openPanel&&openPanel.id===id&&openPanel.type===ty)?null:{id:id,type:ty};
+      gmsg(''); render(); return;
+    }
+    if(b=e.target.closest('[data-boost]')){
+      gmsg('Redirection vers Wave…');
+      window.TGP_PAY.boost(b.getAttribute('data-boost')).catch(function(){ gmsg('Paiement indisponible pour le moment.','err'); });
+      return;
+    }
+    if(b=e.target.closest('[data-unfollow]')){
+      var gid=b.getAttribute('data-unfollow');
+      window.TGP_SUBS.unfollow(gid).then(function(){ delete followed[gid]; gmsg('Vous ne suivez plus ce GP.','ok'); render(); }).catch(function(){ gmsg('Action impossible pour le moment.','err'); });
+      return;
+    }
+    if(e.target.closest('[data-cancel]')){ openPanel=null; render(); }
+  });
+  $('grid').addEventListener('submit',async function(e){
+    e.preventDefault();
+    var f=e.target, id=f.getAttribute('data-id'), ty=f.getAttribute('data-type');
+    var it=allItems().find(function(x){return x.id===id}); if(!it) return;
+    if(ty==='fol'){
+      if(!window.TGP_SUBS||!uid){ gmsg('Connectez-vous pour suivre un GP.','err'); return; }
+      var fn=f.elements.fname.value.trim(), fp=f.elements.fphone.value.replace(/[\s().-]/g,'');
+      if(!fn){ gmsg('Indiquez votre prénom.','err'); return; }
+      if(!/^\+\d{8,15}$/.test(fp)){ gmsg('Entrez le numéro avec le + et l\'indicatif du pays.','err'); return; }
+      if(!f.elements.consent.checked){ gmsg('Cochez la case pour accepter d\'être contacté.','err'); return; }
+      try{ await window.TGP_SUBS.follow(it.owner,fn,fp); followed[it.owner]=1; openPanel=null; gmsg('Vous suivez '+it.name+'. Vous serez prévenu de ses prochains voyages.','ok'); render(); }
+      catch(err){ gmsg('Impossible de vous abonner pour le moment.','err'); }
+      return;
+    }
+    if(!db||!uid){ gmsg('Connectez-vous pour envoyer un avis ou un signalement.','err'); return; }
+    try{
+      if(ty==='rev'){
+        var author=f.elements.author.value.trim(); if(!author){ gmsg('Indiquez votre prénom.','err'); return; }
+        var key=dg(it.phone); if(!key) return;
+        var rv={id:'r'+Date.now().toString(36),key:key,gp:it.name,stars:Math.max(1,Math.min(5,+f.elements.stars.value||5)),text:f.elements.text.value.trim(),author:author,ts:Date.now()};
+        var ref=db.doc('avis/'+uid), snap=await ref.get();
+        var items=((snap.exists&&snap.data().items)||[]).filter(function(x){return x.key!==key}).concat([rv]).slice(-30);
+        await ref.set({items:items});
+        reviews=reviews.filter(function(x){return !(x.key===key&&x.uid===uid)}).concat([Object.assign({uid:uid},rv)]);
+        gmsg('Merci, votre avis est publié.','ok');
+      } else {
+        var rp={itemId:id,reason:f.elements.reason.value,ts:Date.now()};
+        var ref2=db.doc('signalements/'+uid), snap2=await ref2.get();
+        var items2=((snap2.exists&&snap2.data().items)||[]).filter(function(x){return x.itemId!==id}).concat([rp]).slice(-50);
+        await ref2.set({items:items2});
+        reportedSet[id]=1; try{ localStorage.setItem('tgp-reported',JSON.stringify(reportedSet)); }catch(x){}
+        gmsg('Signalement envoyé. Un administrateur va examiner l\'annonce.','ok');
+      }
+      openPanel=null; render();
+    }catch(err){ gmsg('Envoi impossible pour le moment. Réessayez plus tard.','err'); }
+  });
+
+  $('pubForm').addEventListener('submit',async function(e){
+    e.preventDefault();
+    var v=function(id){return $(id).value.trim()};
+    var k=document.querySelector('input[name=kind]:checked').value;
+    var from=v('p-from'), to=v('p-to'), date=v('p-date'), kg=parseFloat(v('p-kg')), price=parseFloat(v('p-price')), name=v('p-name'), phone=v('p-phone').replace(/[^\d+]/g,'');
+    if(!from||!to||!date||!name){ setMsg('Renseignez le trajet, la date et votre prénom.','err'); return; }
+    if(from.toLowerCase()===to.toLowerCase()){ setMsg('Le départ et l\'arrivée doivent être différents.','err'); return; }
+    if(!(kg>0)||isNaN(price)||price<0){ setMsg('Vérifiez le poids et le prix.','err'); return; }
+    if(phone.replace(/\D/g,'').length<8){ setMsg('Entrez un numéro WhatsApp avec l\'indicatif du pays.','err'); return; }
+    var it={id:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),kind:k,from:from,to:to,date:date,kg:kg,price:price,cur:v('p-cur'),name:name,phone:phone,note:v('p-note'),pay:Array.prototype.map.call(document.querySelectorAll('input[name=pay]:checked'),function(x){return x.value}),owner:uid||undefined};
+    var btn=e.submitter; if(btn) btn.disabled=true;
+    var ok=await saveShared(it);
+    if(!ok){ it.local=true; local.push(it); saveLocal(); }
+    if(btn) btn.disabled=false;
+    $('pubForm').reset();
+    setMsg(ok?'Annonce publiée. Tout le monde peut la voir.':'Annonce enregistrée sur cet appareil. Connectez-vous pour la partager avec les autres.','ok');
+    if(ok&&k==='gp'&&window.TGP_SUBS) showNotify(it);
+    kind=k; document.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected',x.dataset.kind===k?'true':'false')});
+    ['f-from','f-to','f-date','f-kg'].forEach(function(id){$(id).value=''});
+    render();
+  });
+
+  render();
+
+  (async function(){
+    try{
+      if(!window.claude||!window.claude.use) return;
+      db=await window.claude.use('db');
+      var user=await window.claude.use('user');
+      if(user&&user.id) uid=await user.id();
+      if(user&&user.canEdit) isAdmin=!!(await user.canEdit());
+      if(window.TGP_PAY){
+        try{ featuredMap=await window.TGP_PAY.featured(); }catch(e){}
+        var qs=new URLSearchParams(location.search);
+        if(qs.get('paiement')==='ok'&&qs.get('ref')){
+          try{
+            var okp=await window.TGP_PAY.confirm(qs.get('ref'));
+            gmsg(okp?'Paiement reçu. Votre annonce est à la une.':'Paiement non confirmé pour le moment.',okp?'ok':'err');
+            featuredMap=await window.TGP_PAY.featured();
+          }catch(e){ gmsg('Impossible de vérifier le paiement.','err'); }
+          history.replaceState(null,'',location.pathname);
+        }
+      }
+      if(window.TGP_SUBS&&uid){
+        try{ (await window.TGP_SUBS.mine()).forEach(function(g){ followed[g]=1; }); }catch(e){}
+        $('myClientsLink').hidden=false;
+        $('openClients').addEventListener('click',function(){ showNotify(null); });
+        render();
+      }
+      if(!db){ $('shareNote').textContent='Les annonces que vous publiez restent sur cet appareil tant que vous n\'êtes pas connecté.'; return; }
+      db.collection('annonces').onSnapshot(function(snap){
+        var arr=[];
+        snap.docs.forEach(function(d){ var data=d.data()||{}; (data.items||[]).forEach(function(it){ it.owner=it.owner||d.id; arr.push(it); }); });
+        shared=arr; if(!openPanel) render();
+      },function(){ });
+      db.collection('avis').onSnapshot(function(snap){
+        var arr=[];
+        snap.docs.forEach(function(d){ ((d.data()||{}).items||[]).forEach(function(r){ r.uid=d.id; arr.push(r); }); });
+        reviews=arr; if(!openPanel) render();
+      },function(){ });
+      if(isAdmin){
+        db.collection('signalements').onSnapshot(function(snap){
+          var c={};
+          snap.docs.forEach(function(d){ ((d.data()||{}).items||[]).forEach(function(r){ if(r&&r.itemId) c[r.itemId]=(c[r.itemId]||0)+1; }); });
+          reports=c; if(!openPanel) render();
+        },function(){ });
+      }
+    }catch(e){}
+  })();
+})();
+</script>
+<script src="tracking.js"></script>
+
+</body>
+</html>
