@@ -58,11 +58,13 @@ CREATE INDEX IF NOT EXISTS analytics_created_at_idx ON analytics(created_at);
 ALTER TABLE analytics ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can read their own analytics
+DROP POLICY IF EXISTS "Users can read own analytics" ON analytics;
 CREATE POLICY "Users can read own analytics" ON analytics
   FOR SELECT
   USING (auth.uid() = user_id OR user_id IS NULL);
 
 -- Policy: Anyone can insert events
+DROP POLICY IF EXISTS "Anyone can insert analytics" ON analytics;
 CREATE POLICY "Anyone can insert analytics" ON analytics
   FOR INSERT
   WITH CHECK (TRUE);
