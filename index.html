@@ -227,19 +227,45 @@
     window.handleLogin = async function(e) {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value;
-      const { data: users, error } = await supabase.from('profiles').select('*').eq('email', email).single();
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
       
-      if (error || !users) {
-        document.getElementById('loginError').textContent = 'Email ou mot de passe incorrect';
+      if (!email || !password) {
+        errorEl.textContent = 'Veuillez remplir tous les champs';
         return;
       }
 
-      currentUser = users;
-      updateUI();
-      closeAuthModal();
-      showPage('dashboard');
-      showAlert('Connexion réussie!', 'success');
-      trackEvent('login', { email, success: true });
+      try {
+        const { data: users, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .single();
+        
+        if (error || !users) {
+          errorEl.textContent = 'Email ou mot de passe incorrect';
+          trackEvent('login', { email, success: false, reason: 'user_not_found' });
+          return;
+        }
+
+        // For demo: simple password check (upgrade to bcrypt in production)
+        const passwordHash = btoa(password);
+        if (users.password_hash !== passwordHash) {
+          errorEl.textContent = 'Email ou mot de passe incorrect';
+          trackEvent('login', { email, success: false, reason: 'wrong_password' });
+          return;
+        }
+
+        currentUser = users;
+        updateUI();
+        closeAuthModal();
+        showPage('dashboard');
+        showAlert('Connexion réussie!', 'success');
+        trackEvent('login', { email, success: true });
+      } catch (err) {
+        errorEl.textContent = 'Erreur de connexion: ' + err.message;
+        console.error('Login error:', err);
+      }
     };
 
     window.handleSignup = async function(e) {
@@ -247,22 +273,57 @@
       const email = document.getElementById('signupEmail').value;
       const username = document.getElementById('signupUsername').value;
       const fullname = document.getElementById('signupFullname').value;
+      const password = document.getElementById('signupPassword').value;
+      const errorEl = document.getElementById('signupError');
 
-      const { data, error } = await supabase.from('profiles').insert([{
-        email, username, full_name: fullname, password_hash: btoa('password'), status: 'active'
-      }]).select().single();
-
-      if (error) {
-        document.getElementById('signupError').textContent = error.message;
+      if (!email || !username || !fullname || !password) {
+        errorEl.textContent = 'Veuillez remplir tous les champs';
         return;
       }
 
-      currentUser = data;
-      updateUI();
-      closeAuthModal();
-      showPage('dashboard');
-      showAlert('Compte créé avec succès!', 'success');
-      trackEvent('signup', { email, username, success: true });
+      try {
+        // Check if user already exists
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .single();
+
+        if (existing) {
+          errorEl.textContent = 'Cet email est déjà utilisé';
+          trackEvent('signup', { email, success: false, reason: 'email_exists' });
+          return;
+        }
+
+        const passwordHash = btoa(password);
+        const { data, error } = await supabase
+          .from('profiles')
+          .insert([{
+            email, 
+            username, 
+            full_name: fullname, 
+            password_hash: passwordHash, 
+            status: 'active'
+          }])
+          .select()
+          .single();
+
+        if (error) {
+          errorEl.textContent = error.message || 'Erreur lors de la création du compte';
+          trackEvent('signup', { email, username, success: false, reason: error.message });
+          return;
+        }
+
+        currentUser = data;
+        updateUI();
+        closeAuthModal();
+        showPage('dashboard');
+        showAlert('Compte créé avec succès!', 'success');
+        trackEvent('signup', { email, username, success: true });
+      } catch (err) {
+        errorEl.textContent = 'Erreur: ' + err.message;
+        console.error('Signup error:', err);
+      }
     };
 
     window.handleLogout = function() {
