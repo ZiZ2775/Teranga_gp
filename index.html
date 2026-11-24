@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -61,6 +61,8 @@
     .error-message { color: var(--error); font-size: 13px; margin-top: 5px; }
     @media (max-width: 768px) { .nav-links { gap: 15px; } .form-container { padding: 20px; } h1 { font-size: 24px; } }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <nav>
@@ -73,7 +75,7 @@
       </ul>
       <div class="user-menu">
         <span id="userDisplay" style="display: none;"></span>
-        <button class="btn btn-secondary" id="authBtn" onclick="handleAuthClick()">Connexion</button>
+        <button class="btn btn-secondary" id="authBtn" onclick="window.handleAuthClick()">Connexion</button>
         <button class="btn btn-danger" id="logoutBtn" style="display: none;" onclick="handleLogout()">Déconnexion</button>
       </div>
     </div>
@@ -179,204 +181,5 @@
       </div>
     </div>
   </main>
-
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-    import { trackEvent } from './tracking.js';
-
-    const supabase = createClient(
-      'https://sb_publishable_66X6aQEEYT_2h3bp44emNA_OMlm-UpR.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiX3B1Ymxpc2hhYmxlXzY2WDZhUUVFWVRfMmgzYnA0NGVtTkEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjQzNzI3MCwiZXhwIjoxODQwMjEzMjcwfQ.qJuMnR9xn9x0Z9x9Z9x9Z9x9Z9x9Z9x9Z9x9Z9x9Z9x'
-    );
-
-    let currentUser = null;
-
-    window.showPage = function(pageName) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageName).classList.add('active');
-      trackEvent('page_view', { page: pageName });
-    };
-
-    window.switchTab = function(tab) {
-      const loginForm = document.getElementById('loginForm');
-      const signupForm = document.getElementById('signupForm');
-      const buttons = document.querySelectorAll('.tab-button');
-
-      if (tab === 'login') {
-        loginForm.style.display = 'block';
-        signupForm.style.display = 'none';
-        buttons[0].classList.add('active');
-        buttons[1].classList.remove('active');
-      } else {
-        loginForm.style.display = 'none';
-        signupForm.style.display = 'block';
-        buttons[0].classList.remove('active');
-        buttons[1].classList.add('active');
-      }
-    };
-
-    window.handleAuthClick = function() {
-      console.log('handleAuthClick called, currentUser:', currentUser);
-      if (currentUser) {
-        console.log('User already logged in, showing dashboard');
-        showPage('dashboard');
-      } else {
-        console.log('Opening auth modal');
-        const modal = document.getElementById('authModal');
-        if (!modal) {
-          console.error('Auth modal not found!');
-          return;
-        }
-        modal.classList.add('show');
-      }
-    };
-
-    window.closeAuthModal = function() {
-      document.getElementById('authModal').classList.remove('show');
-    };
-
-    window.handleLogin = async function(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      const errorEl = document.getElementById('loginError');
-      
-      if (!email || !password) {
-        errorEl.textContent = 'Veuillez remplir tous les champs';
-        return;
-      }
-
-      try {
-        const { data: users, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', email)
-          .single();
-        
-        if (error || !users) {
-          errorEl.textContent = 'Email ou mot de passe incorrect';
-          trackEvent('login', { email, success: false, reason: 'user_not_found' });
-          return;
-        }
-
-        // For demo: simple password check (upgrade to bcrypt in production)
-        const passwordHash = btoa(password);
-        if (users.password_hash !== passwordHash) {
-          errorEl.textContent = 'Email ou mot de passe incorrect';
-          trackEvent('login', { email, success: false, reason: 'wrong_password' });
-          return;
-        }
-
-        currentUser = users;
-        updateUI();
-        closeAuthModal();
-        showPage('dashboard');
-        showAlert('Connexion réussie!', 'success');
-        trackEvent('login', { email, success: true });
-      } catch (err) {
-        errorEl.textContent = 'Erreur de connexion: ' + err.message;
-        console.error('Login error:', err);
-      }
-    };
-
-    window.handleSignup = async function(e) {
-      e.preventDefault();
-      const email = document.getElementById('signupEmail').value;
-      const username = document.getElementById('signupUsername').value;
-      const fullname = document.getElementById('signupFullname').value;
-      const password = document.getElementById('signupPassword').value;
-      const errorEl = document.getElementById('signupError');
-
-      if (!email || !username || !fullname || !password) {
-        errorEl.textContent = 'Veuillez remplir tous les champs';
-        return;
-      }
-
-      try {
-        // Check if user already exists
-        const { data: existing } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', email)
-          .single();
-
-        if (existing) {
-          errorEl.textContent = 'Cet email est déjà utilisé';
-          trackEvent('signup', { email, success: false, reason: 'email_exists' });
-          return;
-        }
-
-        const passwordHash = btoa(password);
-        const { data, error } = await supabase
-          .from('profiles')
-          .insert([{
-            email, 
-            username, 
-            full_name: fullname, 
-            password_hash: passwordHash, 
-            status: 'active'
-          }])
-          .select()
-          .single();
-
-        if (error) {
-          errorEl.textContent = error.message || 'Erreur lors de la création du compte';
-          trackEvent('signup', { email, username, success: false, reason: error.message });
-          return;
-        }
-
-        currentUser = data;
-        updateUI();
-        closeAuthModal();
-        showPage('dashboard');
-        showAlert('Compte créé avec succès!', 'success');
-        trackEvent('signup', { email, username, success: true });
-      } catch (err) {
-        errorEl.textContent = 'Erreur: ' + err.message;
-        console.error('Signup error:', err);
-      }
-    };
-
-    window.handleLogout = function() {
-      currentUser = null;
-      updateUI();
-      showPage('home');
-      showAlert('Déconnecté', 'info');
-    };
-
-    function updateUI() {
-      const authBtn = document.getElementById('authBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const userDisplay = document.getElementById('userDisplay');
-
-      if (currentUser) {
-        authBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        userDisplay.style.display = 'block';
-        userDisplay.textContent = currentUser.full_name || currentUser.username;
-        document.getElementById('dashboardLink').style.display = 'block';
-        document.getElementById('profileLink').style.display = 'block';
-        
-        document.getElementById('profileName').textContent = currentUser.full_name || '-';
-        document.getElementById('profileEmail').textContent = currentUser.email || '-';
-        document.getElementById('profileUsername').textContent = currentUser.username || '-';
-      } else {
-        authBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        userDisplay.style.display = 'none';
-        document.getElementById('dashboardLink').style.display = 'none';
-        document.getElementById('profileLink').style.display = 'none';
-      }
-    }
-
-    window.showAlert = function(message, type = 'info') {
-      const alertEl = document.getElementById('alert');
-      alertEl.textContent = message;
-      alertEl.className = `alert show alert-${type}`;
-      setTimeout(() => alertEl.classList.remove('show'), 4000);
-    };
-
-    updateUI();
-  </script>
 </body>
 </html>
