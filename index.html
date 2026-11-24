@@ -216,8 +216,19 @@
     };
 
     window.handleAuthClick = function() {
-      if (currentUser) showPage('dashboard');
-      else document.getElementById('authModal').classList.add('show');
+      console.log('handleAuthClick called, currentUser:', currentUser);
+      if (currentUser) {
+        console.log('User already logged in, showing dashboard');
+        showPage('dashboard');
+      } else {
+        console.log('Opening auth modal');
+        const modal = document.getElementById('authModal');
+        if (!modal) {
+          console.error('Auth modal not found!');
+          return;
+        }
+        modal.classList.add('show');
+      }
     };
 
     window.closeAuthModal = function() {
