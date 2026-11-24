@@ -1,12 +1,24 @@
-// Supabase Client (wait for window.supabase from CDN)
+// Initialize Supabase
 let supabase;
-if (typeof window !== 'undefined' && window.supabase) {
-  supabase = window.supabase.createClient(
-    'https://ntvezhauhgyaypfkvbh.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50dmV6aHBhbWhneWF5cGZrdmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MTM1ODIsImV4cCI6MjExMTA4OTU4Mn0.JfVsW8w_IrUmuX_5KRmtwPGw0ehhELRr6U5HS65zqsA'
-  );
+
+function initSupabase() {
+  if (window.supabase) {
+    supabase = window.supabase.createClient(
+      'https://ntvezhauhgyaypfkvbh.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50dmV6aHBhbWhneWF5cGZrdmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MTM1ODIsImV4cCI6MjExMTA4OTU4Mn0.JfVsW8w_IrUmuX_5KRmtwPGw0ehhELRr6U5HS65zqsA'
+    );
+    console.log('Supabase initialized');
+  } else {
+    console.warn('Supabase not available, retrying...');
+    setTimeout(initSupabase, 500);
+  }
+}
+
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSupabase);
 } else {
-  console.warn('Supabase not loaded from CDN yet');
+  initSupabase();
 }
 
 let currentUser = null;
@@ -207,28 +219,28 @@ function showAlert(message, type = 'info') {
 }
 
 // Initialize on page load
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('App loaded, initializing...');
-    updateUI();
-    switchTab('login');
-  });
-} else {
-  console.log('App loaded (DOM already ready), initializing...');
+function initApp() {
+  console.log('App initializing...');
   updateUI();
   switchTab('login');
+  
+  // Expose all functions to window (global scope) for onclick handlers
+  if (typeof window !== 'undefined') {
+    window.showPage = showPage;
+    window.switchTab = switchTab;
+    window.handleAuthClick = handleAuthClick;
+    window.closeAuthModal = closeAuthModal;
+    window.handleLogin = handleLogin;
+    window.handleSignup = handleSignup;
+    window.handleLogout = handleLogout;
+    window.updateUI = updateUI;
+    window.showAlert = showAlert;
+    console.log('✓ All functions exposed to window');
+  }
 }
 
-// Expose all functions to window (global scope) for onclick handlers
-if (typeof window !== 'undefined') {
-  window.showPage = showPage;
-  window.switchTab = switchTab;
-  window.handleAuthClick = handleAuthClick;
-  window.closeAuthModal = closeAuthModal;
-  window.handleLogin = handleLogin;
-  window.handleSignup = handleSignup;
-  window.handleLogout = handleLogout;
-  window.updateUI = updateUI;
-  window.showAlert = showAlert;
-  console.log('All functions exposed to window');
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
 }
