@@ -1,8 +1,13 @@
-// Supabase Client
-const supabase = supabase.createClient(
-  'https://ntvezhauhgyaypfkvbh.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50dmV6aHBhbWhneWF5cGZrdmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MTM1ODIsImV4cCI6MjExMTA4OTU4Mn0.JfVsW8w_IrUmuX_5KRmtwPGw0ehhELRr6U5HS65zqsA'
-);
+// Supabase Client (wait for window.supabase from CDN)
+let supabase;
+if (typeof window !== 'undefined' && window.supabase) {
+  supabase = window.supabase.createClient(
+    'https://ntvezhauhgyaypfkvbh.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50dmV6aHBhbWhneWF5cGZrdmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MTM1ODIsImV4cCI6MjExMTA4OTU4Mn0.JfVsW8w_IrUmuX_5KRmtwPGw0ehhELRr6U5HS65zqsA'
+  );
+} else {
+  console.warn('Supabase not loaded from CDN yet');
+}
 
 let currentUser = null;
 
@@ -202,8 +207,28 @@ function showAlert(message, type = 'info') {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('App loaded');
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('App loaded, initializing...');
+    updateUI();
+    switchTab('login');
+  });
+} else {
+  console.log('App loaded (DOM already ready), initializing...');
   updateUI();
   switchTab('login');
-});
+}
+
+// Expose all functions to window (global scope) for onclick handlers
+if (typeof window !== 'undefined') {
+  window.showPage = showPage;
+  window.switchTab = switchTab;
+  window.handleAuthClick = handleAuthClick;
+  window.closeAuthModal = closeAuthModal;
+  window.handleLogin = handleLogin;
+  window.handleSignup = handleSignup;
+  window.handleLogout = handleLogout;
+  window.updateUI = updateUI;
+  window.showAlert = showAlert;
+  console.log('All functions exposed to window');
+}
