@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teranga GP - Gestion Partenariats</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 500px;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #555;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .error {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .success {
+      color: #27ae60;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .user-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .user-info h3 {
+      color: #333;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .user-info p {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .btn-logout {
+      background: #e74c3c;
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    .btn-logout:hover {
+      box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #667eea;
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.3s;
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤝 Teranga GP</h1>
+    <p class="subtitle">Gestion de Partenariats</p>
+
+    <div class="tab-buttons">
+      <button class="tab-button active" onclick="switchTab('login')">Connexion</button>
+      <button class="tab-button" onclick="switchTab('signup')">Inscription</button>
+    </div>
+
+    <!-- Login Tab -->
+    <div id="login" class="tab-content active">
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="votre@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+        <div class="loading" id="loginLoading">
+          <span class="spinner"></span>Connexion en cours...
+        </div>
+        <button type="submit" id="loginBtn">Se connecter</button>
+        <div class="error" id="loginError"></div>
+      </form>
+    </div>
+
+    <!-- Signup Tab -->
+    <div id="signup" class="tab-content">
+      <form onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="votre@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="signupUsername">Nom d'utilisateur</label>
+          <input type="text" id="signupUsername" placeholder="nom_utilisateur" required>
+        </div>
+        <div class="form-group">
+          <label for="signupFullname">Nom complet</label>
+          <input type="text" id="signupFullname" placeholder="Jean Dupont" required>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Mot de passe</label>
+          <input type="password" id="signupPassword" placeholder="••••••••" required>
+        </div>
+        <div class="loading" id="signupLoading">
+          <span class="spinner"></span>Création du compte...
+        </div>
+        <button type="submit" id="signupBtn">Créer un compte</button>
+        <div class="error" id="signupError"></div>
+      </form>
+    </div>
+
+    <!-- User Info (after login) -->
+    <div class="user-info" id="userInfo">
+      <h3>Profil utilisateur</h3>
+      <p><strong>Nom:</strong> <span id="userName"></span></p>
+      <p><strong>Email:</strong> <span id="userEmail"></span></p>
+      <p><strong>Statut:</strong> <span id="userStatus"></span></p>
+      <button class="btn-logout" onclick="handleLogout()">Se déconnecter</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    import { trackEvent } from './tracking.js';
+
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://sb_publishable_66X6aQEEYT_2h3bp44emNA_OMlm-UpR.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiX3B1Ymxpc2hhYmxlXzY2WDZhUUVFWVRfMmgzYnA0NGVtTkEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjQzNzI3MCwiZXhwIjoxODQwMjEzMjcwfQ.qJuMnR9xn9x0Z9x9Z9x9Z9x9Z9x9Z9x9Z9x9Z9x9Z9x';
+    
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      event.target.classList.add('active');
+      trackEvent('tab_switch', { tab });
+    };
+
+    window.handleLogin = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('loginError');
+      const loadingEl = document.getElementById('loginLoading');
+      const btnEl = document.getElementById('loginBtn');
+
+      errorEl.style.display = 'none';
+      loadingEl.style.display = 'block';
+      btnEl.disabled = true;
+
+      try {
+        const { data: users, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .single();
+
+        if (error || !users) {
+          throw new Error('Email ou mot de passe incorrect');
+        }
+
+        trackEvent('login', { email, success: true });
+        showUserInfo(users);
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+        trackEvent('login', { email, success: false, error: err.message });
+      } finally {
+        loadingEl.style.display = 'none';
+        btnEl.disabled = false;
+      }
+    };
+
+    window.handleSignup = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('signupEmail').value;
+      const username = document.getElementById('signupUsername').value;
+      const fullname = document.getElementById('signupFullname').value;
+      const password = document.getElementById('signupPassword').value;
+      const errorEl = document.getElementById('signupError');
+      const loadingEl = document.getElementById('signupLoading');
+      const btnEl = document.getElementById('signupBtn');
+
+      errorEl.style.display = 'none';
+      loadingEl.style.display = 'block';
+      btnEl.disabled = true;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .insert([{
+            email,
+            username,
+            full_name: fullname,
+            password_hash: btoa(password),
+            status: 'active'
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        trackEvent('signup', { email, username, success: true });
+        alert('Compte créé avec succès! Vous pouvez maintenant vous connecter.');
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupUsername').value = '';
+        document.getElementById('signupFullname').value = '';
+        document.getElementById('signupPassword').value = '';
+        document.querySelector('[onclick="switchTab(\'login\')"]').click();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+        trackEvent('signup', { email, username, success: false, error: err.message });
+      } finally {
+        loadingEl.style.display = 'none';
+        btnEl.disabled = false;
+      }
+    };
+
+    function showUserInfo(user) {
+      document.getElementById('userName').textContent = user.full_name || user.username;
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userStatus').textContent = user.status;
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.getElementById('userInfo').style.display = 'block';
+      trackEvent('user_logged_in', { user_id: user.id });
+    }
+
+    window.handleLogout = function() {
+      document.getElementById('userInfo').style.display = 'none';
+      document.getElementById('login').classList.add('active');
+      document.querySelectorAll('.tab-button')[0].classList.add('active');
+      trackEvent('logout', {});
+    };
+
+    // Check if user is already logged in
+    supabase.auth.onAuthStateChange((event, session) => {
+      trackEvent('auth_state_change', { event, has_session: !!session });
+    });
+  </script>
+</body>
+</html>
