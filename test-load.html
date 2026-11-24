@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test App.js Load</title>
+</head>
+<body>
+  <h1>Test</h1>
+  <button onclick="testClick()">Test</button>
+  
+  <script>
+    console.log('=== INLINE SCRIPT ===');
+    function testClick() {
+      alert('Inline function works!');
+      console.log('handleAuthClick:', typeof window.handleAuthClick);
+      console.log('All window functions:', Object.keys(window).filter(k => k.includes('handle') || k.includes('Auth')));
+    }
+  </script>
+  
+  <script src="/Teranga_gp/app.js"></script>
+  
+  <script>
+    console.log('=== AFTER APP.JS ===');
+    console.log('handleAuthClick type:', typeof window.handleAuthClick);
+    
+    setTimeout(() => {
+      console.log('AFTER TIMEOUT:');
+      console.log('handleAuthClick:', typeof window.handleAuthClick);
+      if (window.supabase) {
+        console.log('✅ Supabase loaded');
+      } else {
+        console.log('❌ Supabase NOT loaded');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
