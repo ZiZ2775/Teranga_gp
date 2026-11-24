@@ -1,0 +1,3 @@
+Force Netlify rebuild - triggered at $(date)
+This file forces Netlify to detect a change and redeploy
+Ensuring app.js is included in the deployment
