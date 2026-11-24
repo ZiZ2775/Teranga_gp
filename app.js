@@ -1,4 +1,6 @@
 // Supabase Client (wait for window.supabase from CDN)
+(function() {
+
 let supabase;
 
 function initSupabase() {
@@ -224,8 +226,6 @@ if (document.readyState === 'loading') {
   initApp();
 }
 
-// Expose all functions to window (global scope) for onclick handlers
-// MUST be done immediately after function definitions
 window.showPage = showPage;
 window.switchTab = switchTab;
 window.handleAuthClick = handleAuthClick;
@@ -236,3 +236,6 @@ window.handleLogout = handleLogout;
 window.updateUI = updateUI;
 window.showAlert = showAlert;
 console.log('✓ All functions exposed to window');
+initSupabase();
+
+})();  // End of IIFE
